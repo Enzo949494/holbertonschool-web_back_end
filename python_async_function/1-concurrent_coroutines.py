@@ -29,7 +29,7 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
     for delay in delays:
         # Insert delay in the correct position to maintain ascending order
         position = 0
-        while (position < len(sorted_delays) and 
+        while (position < len(sorted_delays) and
                delay > sorted_delays[position]):
             position += 1
         sorted_delays.insert(position, delay)
