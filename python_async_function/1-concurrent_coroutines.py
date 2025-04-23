@@ -21,19 +21,16 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
     Returns:
         List[float]: List of all delays in ascending order
     """
-    tasks = []
-    for _ in range(n):
-        tasks.append(asyncio.create_task(wait_random(max_delay)))
+    tasks = [wait_random(max_delay) for _ in range(n)]
     delays = await asyncio.gather(*tasks)
     
-    # Manual bubble sort implementation (explicitly not using sort())
-    result: List[float] = list(delays)  # Create a copy to sort
-    length = len(result)
+    # Sort delays without using sort()
+    sorted_delays: List[float] = []
+    for delay in delays:
+        # Insert delay in the correct position to maintain ascending order
+        position = 0
+        while position < len(sorted_delays) and delay > sorted_delays[position]:
+            position += 1
+        sorted_delays.insert(position, delay)
     
-    for i in range(length):
-        for j in range(0, length - i - 1):
-            if result[j] > result[j + 1]:
-                # Swap elements
-                result[j], result[j + 1] = result[j + 1], result[j]
-    
-    return result
+    return sorted_delays
