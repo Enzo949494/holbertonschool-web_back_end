@@ -23,7 +23,7 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
     """
     tasks = [wait_random(max_delay) for _ in range(n)]
     delays = await asyncio.gather(*tasks)
-    
+
     # Sort delays without using sort()
     sorted_delays: List[float] = []
     for delay in delays:
@@ -33,5 +33,5 @@ async def wait_n(n: int, max_delay: int) -> List[float]:
                delay > sorted_delays[position]):
             position += 1
         sorted_delays.insert(position, delay)
-    
+
     return sorted_delays
