@@ -2,7 +2,6 @@
 """Measuring runtime of async comprehensions"""
 import asyncio
 import time
-from typing import List
 
 async_comprehension = __import__('1-async_comprehension').async_comprehension
 
@@ -14,13 +13,9 @@ async def measure_runtime() -> float:
     """
     start_time = time.perf_counter()
 
-    # Execute async_comprehension four times in parallel
-    await asyncio.gather(
-        async_comprehension(),
-        async_comprehension(),
-        async_comprehension(),
-        async_comprehension()
-    )
+    # Create a list of coroutines and unpack it with * in gather
+    coroutines = [async_comprehension() for _ in range(4)]
+    await asyncio.gather(*coroutines)
 
     end_time = time.perf_counter()
     return end_time - start_time
