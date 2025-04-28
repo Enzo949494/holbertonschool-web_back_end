@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """async_generator coroutine function"""
-import random
 import asyncio
+import random
 from typing import AsyncGenerator
 
 
