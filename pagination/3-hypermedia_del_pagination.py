@@ -64,15 +64,17 @@ class Server:
         assert 0 <= index < data_size, "Index out of range"
 
         # Collect the data for the current page
-        data: List[List] = []
+        data = []
         current_index = index
-        
+        count = 0
+
         # Collect page_size items, skipping deleted indices
-        while len(data) < page_size and current_index < data_size:
+        while count < page_size and current_index < data_size:
             if current_index in indexed_data:
                 data.append(indexed_data[current_index])
+                count += 1
             current_index += 1
-            
+
         # Calculate the next index (first item after the current page)
         next_index = current_index
 
