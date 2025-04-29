@@ -69,7 +69,9 @@ class Server:
         count = 0
 
         # Collect page_size items, skipping deleted indices
-        while count < page_size and current_index < data_size:
+        while count < page_size:
+            if current_index >= data_size:
+                break
             if current_index in indexed_data:
                 data.append(indexed_data[current_index])
                 count += 1
