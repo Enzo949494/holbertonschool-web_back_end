@@ -39,8 +39,7 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: Optional[int] = None,
-                        page_size: int = 10) -> Dict:
+    def get_hyper_index(self, index: Optional[int] = None, page_size: int = 10) -> Dict:
         """
         Return a page of the dataset based on index,
         that is resilient to deletions.
@@ -58,31 +57,29 @@ class Server:
 
         # Get the indexed dataset
         indexed_data = self.indexed_dataset()
-        data_size = len(indexed_data)
-
+        
         # Verify index is in valid range
-        assert 0 <= index < data_size, "Index out of range"
-
-        # Collect the data for the current page
-        data = []
-        current_index = index
-        count = 0
-
-        # Collect page_size items, skipping deleted indices
-        while count < page_size:
-            if current_index >= data_size:
-                break
-            if current_index in indexed_data:
-                data.append(indexed_data[current_index])
-                count += 1
-            current_index += 1
-
-        # Calculate the next index (first item after the current page)
-        next_index = current_index
-
+        assert index >= 0 and index < len(indexed_data), "Index out of range"
+        
+        # Find the real index if the one provided doesn't exist anymore
+        real_start_idx = index
+        while real_start_idx not in indexed_data and real_start_idx < len(indexed_data):
+            real_start_idx += 1
+        
+        # Collect data for the current page
+        data: List[List] = []
+        current_idx = real_start_idx
+        while len(data) < page_size and current_idx < len(indexed_data):
+            if current_idx in indexed_data:
+                data.append(indexed_data[current_idx])
+            current_idx += 1
+        
+        # Calculate next_index
+        next_index = current_idx
+        
         return {
-            'index': index,
+            'index': index,  # Return original index, not real_start_idx
             'next_index': next_index,
-            'page_size': len(data),
+            'page_size': page_size,
             'data': data
         }
