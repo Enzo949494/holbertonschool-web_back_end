@@ -39,8 +39,7 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: int =
-                        None, page_size: int = 10) -> Dict:  # type: ignore
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
         """
         Return a page of the dataset based on index,
         that is resilient to deletions.
