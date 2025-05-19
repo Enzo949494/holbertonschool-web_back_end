@@ -12,65 +12,70 @@ function countStudents(path) {
         reject(new Error('Cannot load the database'));
         return;
       }
-      const reportParts = [];
+      
       const lines = data.trim().split('\n');
-      const studentGroups = {};
       const dbFieldNames = lines[0].split(',');
-      const studentPropNames = dbFieldNames.slice();
-
       const studentsByField = {};
-
+      
+      // Skip header, process each student line
       lines.slice(1).forEach((line) => {
-        const studentRecord = line.split(',');
-        if (studentRecord.length === dbFieldNames.length) {
-          const studentEntries = studentRecord.map((prop, idx) => [
-            studentPropNames[idx],
-            prop,
-          ]);
-          const student = Object.fromEntries(studentEntries);
-          
-          if (!studentsByField[student.field]) {
-            studentsByField[student.field] = [];
+        if (line.trim()) { // Skip empty lines
+          const studentRecord = line.split(',');
+          if (studentRecord.length === dbFieldNames.length) {
+            const studentEntries = studentRecord.map((prop, idx) => [
+              dbFieldNames[idx],
+              prop,
+            ]);
+            const student = Object.fromEntries(studentEntries);
+            
+            if (!studentsByField[student.field]) {
+              studentsByField[student.field] = [];
+            }
+            studentsByField[student.field].push(student.firstname);
           }
-          studentsByField[student.field].push(student.firstname);
         }
       });
 
-      const totalStudents = Object
-        .values(studentsByField)
-        .reduce((pre, cur) => (pre || []).length + cur.length);
-      reportParts.push(`Number of students: ${totalStudents}`);
+      // Calculate total students
+      const totalStudents = Object.values(studentsByField)
+        .reduce((pre, cur) => pre + cur.length, 0);
+      
+      let report = `Number of students: ${totalStudents}`;
+      
+      // Add field-specific information
+      Object.entries(studentsByField).forEach(([field, names]) => {
+        report += `\nNumber of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
+      });
 
-      for (const [field, group] of Object.entries(studentsByField)) {
-        reportParts.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
-      }
-
-      resolve(reportParts.join('\n'));
+      resolve(report);
     });
   });
 }
 
 const app = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
+  
   if (req.url === '/') {
     res.statusCode = 200;
-    res.end('Hello Holberton School!');
+    res.write('Hello Holberton School!');
+    res.end();
   } else if (req.url === '/students') {
     const databaseFilename = process.argv[2];
+    
+    res.write('This is the list of our students\n');
+    
     countStudents(databaseFilename)
       .then((report) => {
         res.statusCode = 200;
-        res.write('This is the list of our students\n');
         res.end(report);
       })
       .catch((error) => {
         res.statusCode = 200;
-        res.write('This is the list of our students\n');
         res.end(error.message);
       });
   } else {
     res.statusCode = 404;
-    res.end('Not found');
+    res.end('Not found\n');
   }
 });
 
