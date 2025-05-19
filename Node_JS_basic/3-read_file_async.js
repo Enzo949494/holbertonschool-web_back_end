@@ -29,9 +29,8 @@ async function countStudents(path) {
       }
     }
     
-    return Promise.resolve(); // Resolve the promise successfully
   } catch (err) {
-    return Promise.reject(new Error('Cannot load the database'));
+    throw new Error('Cannot load the database');
   }
 }
 
