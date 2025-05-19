@@ -25,14 +25,12 @@ const countStudents = (path) => {
 
         for (const field in fields) {
           if (Object.prototype.hasOwnProperty.call(fields, field)) {
-            output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
-            // Ne pas ajouter \n après la dernière ligne
-            if (Object.keys(fields).indexOf(field) < Object.keys(fields).length - 1) {
-              output += '\n';
-            }
+            output += `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}\n`;
           }
         }
         
+        // Supprimez le dernier saut de ligne s'il existe
+        output = output.slice(0, -1);
         resolve(output);
       })
       .catch(() => {
@@ -57,7 +55,7 @@ const app = http.createServer((req, res) => {
         res.end(result);
       })
       .catch((error) => {
-        res.end(`${error.message}`);
+        res.end(error.message);
       });
   } else {
     res.statusCode = 404;
@@ -65,8 +63,9 @@ const app = http.createServer((req, res) => {
   }
 });
 
-app.listen(1245, () => {
-  console.log('Server running at http://localhost:1245/');
+const PORT = 1245;
+app.listen(PORT, () => {
+  // Optionnel : message de démarrage du serveur
 });
 
 module.exports = app;
