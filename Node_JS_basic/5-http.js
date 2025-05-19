@@ -30,7 +30,10 @@ function countStudents(path) {
         fields[field].push(firstname);
       });
       
-      Object.keys(fields).forEach((field) => {
+      // S'assurer que les champs sont triés
+      const sortedFields = Object.keys(fields).sort();
+      
+      sortedFields.forEach((field) => {
         report += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
       });
       
@@ -41,14 +44,14 @@ function countStudents(path) {
 
 const app = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
+  res.statusCode = 200;
   
   if (req.url === '/') {
-    res.statusCode = 200;
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    res.write('This is the list of our students\n');
-    
     const databaseFilename = process.argv[2];
+    
+    res.write('This is the list of our students\n');
     
     countStudents(databaseFilename)
       .then((report) => {
@@ -63,7 +66,6 @@ const app = http.createServer((req, res) => {
   }
 });
 
-const PORT = 1245;
-app.listen(PORT);
+app.listen(1245);
 
 module.exports = app;
