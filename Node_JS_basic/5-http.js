@@ -1,52 +1,73 @@
 const http = require('http');
-const fs = require('fs').promises;
+const fs = require('fs');
 
-const countStudents = async (path) => {
-  try {
-    const data = await fs.readFile(path, 'utf8');
-    const lines = data.split('\n');
-    const students = lines.filter((line) => line && line !== lines[0]);
-    let output = `Number of students: ${students.length}`;
-
-    const fields = {};
-    const columns = lines[0].split(',');
-    const firstNamePos = columns.indexOf('firstname');
-    const fieldPos = columns.indexOf('field');
-
-    for (const student of students) {
-      const studentData = student.split(',');
-      const field = studentData[fieldPos];
-      const firstName = studentData[firstNamePos];
-
-      if (!fields[field]) fields[field] = [];
-      fields[field].push(firstName);
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    if (!path) {
+      reject(new Error('Cannot load the database'));
+      return;
     }
-
-    for (const field in fields) {
-      if (Object.prototype.hasOwnProperty.call(fields, field)) {
-        output += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
+    fs.readFile(path, 'utf-8', (err, data) => {
+      if (err) {
+        reject(new Error('Cannot load the database'));
+        return;
       }
-    }
-    
-    return output;
-  } catch (error) {
-    throw new Error('Cannot load the database');
-  }
-};
+      const reportParts = [];
+      const lines = data.trim().split('\n');
+      const studentGroups = {};
+      const dbFieldNames = lines[0].split(',');
+      const studentPropNames = dbFieldNames.slice();
 
-const app = http.createServer(async (req, res) => {
-  res.statusCode = 200;
+      const studentsByField = {};
+
+      lines.slice(1).forEach((line) => {
+        const studentRecord = line.split(',');
+        if (studentRecord.length === dbFieldNames.length) {
+          const studentEntries = studentRecord.map((prop, idx) => [
+            studentPropNames[idx],
+            prop,
+          ]);
+          const student = Object.fromEntries(studentEntries);
+          
+          if (!studentsByField[student.field]) {
+            studentsByField[student.field] = [];
+          }
+          studentsByField[student.field].push(student.firstname);
+        }
+      });
+
+      const totalStudents = Object
+        .values(studentsByField)
+        .reduce((pre, cur) => (pre || []).length + cur.length);
+      reportParts.push(`Number of students: ${totalStudents}`);
+
+      for (const [field, group] of Object.entries(studentsByField)) {
+        reportParts.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
+      }
+
+      resolve(reportParts.join('\n'));
+    });
+  });
+}
+
+const app = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  
   if (req.url === '/') {
+    res.statusCode = 200;
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    try {
-      const studentsInfo = await countStudents(process.argv[2]);
-      res.end(`This is the list of our students\n${studentsInfo}`);
-    } catch (error) {
-      res.end(`This is the list of our students\n${error.message}`);
-    }
+    const databaseFilename = process.argv[2];
+    countStudents(databaseFilename)
+      .then((report) => {
+        res.statusCode = 200;
+        res.write('This is the list of our students\n');
+        res.end(report);
+      })
+      .catch((error) => {
+        res.statusCode = 200;
+        res.write('This is the list of our students\n');
+        res.end(error.message);
+      });
   } else {
     res.statusCode = 404;
     res.end('Not found');
