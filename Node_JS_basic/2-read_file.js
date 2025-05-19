@@ -1,46 +1,39 @@
 const fs = require('fs');
 
 function countStudents(path) {
-  let fileContent;
-  
+  let data;
   try {
-    fileContent = fs.readFileSync(path, 'utf8');
-  } catch (error) {
+    data = fs.readFileSync(path, 'utf8');
+  } catch (err) {
     throw new Error('Cannot load the database');
   }
+
+  const lines = data.split('\n');
+  // Remove empty lines and header
+  const students = lines.filter((line) => line && line !== lines[0]);
   
-  // Split the file into lines and remove empty lines
-  const lines = fileContent.toString().trim().split('\n');
+  console.log(`Number of students: ${students.length}`);
   
-  // Skip the header and filter out empty lines
-  const studentLines = lines.slice(1).filter(line => line.trim());
+  const fields = {};
+  const columns = lines[0].split(',');
+  const firstNamePos = columns.indexOf('firstname');
+  const fieldPos = columns.indexOf('field');
   
-  console.log(`Number of students: ${studentLines.length}`);
-  
-  // Parse the header to find field and firstname indices
-  const headers = lines[0].split(',');
-  const fieldIndex = headers.indexOf('field');
-  const firstNameIndex = headers.indexOf('firstname');
-  
-  // Group students by field
-  const studentsByField = {};
-  
-  for (const line of studentLines) {
-    const fields = line.split(',');
-    const field = fields[fieldIndex].trim();
-    const firstName = fields[firstNameIndex].trim();
+  students.forEach((student) => {
+    const studentData = student.split(',');
+    const field = studentData[fieldPos];
+    const firstName = studentData[firstNamePos];
     
-    if (!studentsByField[field]) {
-      studentsByField[field] = [];
+    if (!fields[field]) fields[field] = { count: 0, names: [] };
+    fields[field].count += 1;
+    fields[field].names.push(firstName);
+  });
+  
+  for (const field in fields) {
+    if (Object.prototype.hasOwnProperty.call(fields, field)) {
+      const { count, names } = fields[field];
+      console.log(`Number of students in ${field}: ${count}. List: ${names.join(', ')}`);
     }
-    
-    studentsByField[field].push(firstName);
-  }
-  
-  // Display information for each field
-  for (const field of Object.keys(studentsByField)) {
-    const students = studentsByField[field];
-    console.log(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
   }
 }
 
