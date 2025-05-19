@@ -29,7 +29,7 @@ const countStudents = (path) => {
           }
         }
         
-        // Supprimez le dernier saut de ligne s'il existe
+        // Remove the last newline
         output = output.slice(0, -1);
         resolve(output);
       })
@@ -43,14 +43,12 @@ const app = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
   
-  const dbPath = process.argv[2];
-
   if (req.url === '/') {
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
     res.write('This is the list of our students\n');
     
-    countStudents(dbPath)
+    countStudents(process.argv[2])
       .then((result) => {
         res.end(result);
       })
@@ -63,9 +61,6 @@ const app = http.createServer((req, res) => {
   }
 });
 
-const PORT = 1245;
-app.listen(PORT, () => {
-  // Optionnel : message de démarrage du serveur
-});
+app.listen(1245);
 
 module.exports = app;
