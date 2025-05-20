@@ -11,7 +11,7 @@ function countStudents(path) {
       
       const lines = data.split('\n').filter(line => line.trim());
       if (lines.length <= 1) {
-        resolve('Number of students: 0');
+        reject(new Error('Cannot load the database'));
         return;
       }
 
@@ -32,7 +32,7 @@ function countStudents(path) {
       });
       
       let report = `Number of students: ${students.length}`;
-      Object.keys(fields).sort().forEach((field) => {
+      Object.keys(fields).forEach((field) => {
         report += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
       });
       
@@ -50,20 +50,13 @@ const app = http.createServer((req, res) => {
   } else if (req.url === '/students') {
     const databaseFilename = process.argv[2];
     
-    if (!databaseFilename) {
-      res.statusCode = 500;
-      res.end('Cannot load the database');
-      return;
-    }
-
     res.statusCode = 200;
     res.write('This is the list of our students\n');
     
     countStudents(databaseFilename)
       .then(report => res.end(report))
-      .catch(() => {
-        res.statusCode = 500;
-        res.end('Cannot load the database');
+      .catch((error) => {
+        res.end(error.message);
       });
   } else {
     res.statusCode = 404;
