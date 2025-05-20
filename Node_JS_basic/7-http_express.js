@@ -45,12 +45,12 @@ const app = express();
 const port = 1245;
 
 app.get('/', (req, res) => {
-  res.type('text/plain');
+  res.set('Content-Type', 'text/plain');
   res.send('Hello Holberton School!');
 });
 
 app.get('/students', async (req, res) => {
-  res.type('text/plain');
+  res.set('Content-Type', 'text/plain');
   const databaseFilename = process.argv[2];
   
   try {
