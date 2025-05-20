@@ -9,31 +9,30 @@ function countStudents(path) {
         return;
       }
       
-      const lines = data.split('\n');
-      const students = lines.slice(1).filter((line) => line.trim());
-      const fields = {};
+      const lines = data.split('\n').filter(line => line.trim());
+      if (lines.length <= 1) {
+        resolve('Number of students: 0');
+        return;
+      }
+
       const columns = lines[0].split(',');
       const fieldIndex = columns.indexOf('field');
       const firstnameIndex = columns.indexOf('firstname');
-
-      let report = `Number of students: ${students.length}`;
       
+      const students = lines.slice(1);
+      const fields = {};
+
       students.forEach((student) => {
         const values = student.split(',');
         const field = values[fieldIndex];
         const firstname = values[firstnameIndex];
         
-        if (!fields[field]) {
-          fields[field] = [];
-        }
-        
+        fields[field] = fields[field] || [];
         fields[field].push(firstname);
       });
       
-      // S'assurer que les champs sont triés
-      const sortedFields = Object.keys(fields).sort();
-      
-      sortedFields.forEach((field) => {
+      let report = `Number of students: ${students.length}`;
+      Object.keys(fields).sort().forEach((field) => {
         report += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
       });
       
@@ -44,21 +43,27 @@ function countStudents(path) {
 
 const app = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  res.statusCode = 200;
   
   if (req.url === '/') {
+    res.statusCode = 200;
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
     const databaseFilename = process.argv[2];
     
+    if (!databaseFilename) {
+      res.statusCode = 500;
+      res.end('Cannot load the database');
+      return;
+    }
+
+    res.statusCode = 200;
     res.write('This is the list of our students\n');
     
     countStudents(databaseFilename)
-      .then((report) => {
-        res.end(report);
-      })
-      .catch((error) => {
-        res.end(error.message);
+      .then(report => res.end(report))
+      .catch(() => {
+        res.statusCode = 500;
+        res.end('Cannot load the database');
       });
   } else {
     res.statusCode = 404;
@@ -67,5 +72,4 @@ const app = http.createServer((req, res) => {
 });
 
 app.listen(1245);
-
 module.exports = app;
