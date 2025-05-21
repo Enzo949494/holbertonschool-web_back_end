@@ -8,8 +8,8 @@ function countStudents(path) {
         reject(new Error('Cannot load the database'));
         return;
       }
-      
-      const lines = data.split('\n').filter(line => line.trim());
+
+      const lines = data.split('\n').filter((line) => line.trim());
       if (lines.length <= 1) {
         reject(new Error('Cannot load the database'));
         return;
@@ -18,7 +18,7 @@ function countStudents(path) {
       const columns = lines[0].split(',');
       const fieldIndex = columns.indexOf('field');
       const firstnameIndex = columns.indexOf('firstname');
-      
+
       const students = lines.slice(1);
       const fields = {};
 
@@ -26,16 +26,16 @@ function countStudents(path) {
         const values = student.split(',');
         const field = values[fieldIndex];
         const firstname = values[firstnameIndex];
-        
+
         fields[field] = fields[field] || [];
         fields[field].push(firstname);
       });
-      
+
       let report = `Number of students: ${students.length}`;
       Object.keys(fields).forEach((field) => {
         report += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
       });
-      
+
       resolve(report);
     });
   });
@@ -52,7 +52,7 @@ app.get('/', (req, res) => {
 app.get('/students', async (req, res) => {
   res.set('Content-Type', 'text/plain');
   const databaseFilename = process.argv[2];
-  
+
   try {
     const report = await countStudents(databaseFilename);
     res.send(`This is the list of our students\n${report}`);
