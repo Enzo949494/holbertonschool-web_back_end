@@ -10,8 +10,7 @@ class StudentsController {
           a.toLowerCase().localeCompare(b.toLowerCase()));
 
         sortedFields.forEach((field) => {
-          responseText += `\nNumber of students in ${field}:
-          ${fields[field].length}. List: ${fields[field].join(', ')}`;
+          responseText += `\nNumber of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`;
         });
 
         response.status(200).send(responseText);
